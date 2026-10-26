@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Marker">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAABqklEQVR42u3dsQ2CQBiG4Q/jGC5ghZXb4BYuAVs4DpUdCzAIHRUV0RPheRYgubz5r7jLUdVNG1hysgSIA3EgDsSBOBAH4kAciANxgDgQB+JAHIgDcSAOxIE4EAeIA3EgDsSBOBAH4kAciANxgDgQB+JAHIgDcSAOxIE4EAfiAHEgDsTBN52Lfen9elruT7k9OpMD2woH31Zm/TBa93Xu14vJgW0FcSAOxIE4QByIA3EgDsSBOIiDt/zi9AiTA3FQUFU3rVXA5EAciANxIA7EgTgQB+JAHCAOxIE4EAfxsg/xsg+2FWwrJvYOt2aTA3EgDsSBOBAH4kAciANxIA4QB3HwFvdOTA7EQbzsg8mBOBAH4kAcIA7EgTgQB+JAHIgDcSAO4iZY3LCKl31AHGz9gnE/jNY9//DXVZMDcSAOxIE4EAfiQByIA3EgDhAH2fLBW+HTI0wOxEG87IPJgTgQB+JAHIgDxIE4EAfiQByIA3EgDsSBOEAciANxIA7EgTgQB+JAHIgDxIE4EAfiQByIA3EgDsSBOBCHJUAciANxIA7EgTgQB+JAHBzWBCLBGqy/yHPpAAAAAElFTkSuQmCC">
+<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAABqklEQVR42u3dsQ2CQBiG4Q/jGC5ghZXb4BYuAVs4DpUdCzAIHRUV0RPheRYgubz5r7jLUdVNG1hysgSIA3EgDsSBOBAH4kAciANxgDgQB+JAHIgDcSAOxIE4EAeIA3EgDsSBOBAH4kAciANxgDgQB+JAHIgDcSAOxIE4EAfiAHEgDsTBN52Lfen9elruT7k9OpMD2woH31Zm/TBa93Xu14vJgW0FcSAOxIE4QByIA3EgDsSBOIiDt/zi9AiTA3FQUFU3rVXA5EAciANxIA7EgTgQB+JAHCAOxIE4EAfxsg/xsg+2FWwrJvYOt2aTA3EgDsSBOBAH4kAciANxIA4QB3HwFvdOTA7EQbzsg8mBOBAH4kAcIA7EgTgQB+JAHIgDcSAO4iZY3LCKl31AHGz9gnE/jNY9//DXVZMDcSAOxIE4EAfiQByIA3EgDhAH2fLBW+HTI0wOxEG87IPJgTgQB+JAHIgDxIE4EAfiQByIA3EgDsSBOEAciANxIA7EgTgQB+JAHIgDxIE4EAfiQByIA3EgDsSBOBCHJUAciANxIA7EgTgQB+JAHBzWBCLBGqy/yHPpAAAAAElFTkSuQmCC">
+<title>Poster Marker</title>
+<style>
+:root{
+  --bg:#f6f5f2; --panel:#ffffff; --ink:#1d1d1f; --mute:#6b6b70; --line:#dcdad5;
+  --accent:#2f5d8a; --accent-soft:#e3ebf3; --done:#3d7a4f; --warn:#a8552b; --sel-ink:#ffffff;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141416; --panel:#1c1c1f; --ink:#e8e7e3; --mute:#9a9aa0; --line:#2e2e33;
+    --accent:#7fa8d1; --accent-soft:#22303d; --done:#7fbf8e; --warn:#e09a72; --sel-ink:#111;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--font)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+input,textarea,select{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:300px 1fr;height:100vh;height:100dvh}
+.mbar,.sideclose{display:none}
+button{touch-action:manipulation}
+
+/* sidebar */
+aside{border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0}
+.side-head{padding:16px 16px 8px}
+.side-head h1{font-size:15px;margin:0 0 10px;letter-spacing:.01em}
+.field{display:block;width:100%;border:0;border-bottom:1px solid var(--line);background:transparent;padding:6px 0;margin-bottom:8px;outline:none}
+.field:focus{border-bottom-color:var(--accent)}
+select.field{cursor:pointer}
+.progress{font-size:12px;color:var(--mute);padding:0 16px 8px}
+.glist{overflow:auto;flex:1;padding-bottom:8px}
+.gitem{display:block;width:100%;text-align:left;padding:7px 16px 7px 13px;border-left:3px solid transparent}
+.gitem:hover{background:var(--bg)}
+.gitem.active{border-left-color:var(--accent);background:var(--accent-soft)}
+.gitem .gname{font-family:var(--mono);font-size:13px}
+.gitem .gmeta{font-size:12px;color:var(--mute)}
+.gitem .st{float:right;font-size:12px;color:var(--mute)}
+.gitem .st.done{color:var(--done)}
+.gitem .st.part{color:var(--warn)}
+.side-foot{border-top:1px solid var(--line);padding:10px 16px;display:flex;flex-wrap:wrap;gap:4px 14px}
+.link{font-size:12px;color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+
+/* main */
+main{overflow:auto;min-height:0}
+.wrap{max-width:980px;margin:0 auto;padding:24px 32px 80px}
+.top{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:8px}
+.top h2{margin:0;font-family:var(--mono);font-size:20px;font-weight:600}
+.top .meta{color:var(--mute)}
+.top .nav{margin-left:auto;display:flex;gap:14px}
+.summary{display:flex;flex-wrap:wrap;gap:4px 22px;padding:8px 0 4px;font-size:13px;color:var(--mute)}
+.summary b{color:var(--ink);font-variant-numeric:tabular-nums}
+h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);margin:28px 0 4px;display:flex;justify-content:space-between}
+h3 .tot{font-variant-numeric:tabular-nums;color:var(--ink);letter-spacing:0;text-transform:none;font-size:14px}
+
+.crit{display:grid;grid-template-columns:minmax(170px,230px) 1fr 92px;gap:6px 16px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.crit .cname{font-weight:500}
+.crit .cname small{display:block;color:var(--mute);font-weight:400;font-size:12px}
+.bands{display:flex;flex-wrap:wrap;border:1px solid var(--line)}
+.band{flex:1 1 0;min-width:62px;padding:6px 4px;text-align:center;font-size:12px;border-right:1px solid var(--line);line-height:1.2}
+.band:last-child{border-right:0}
+.band span{display:block;font-size:11px;color:var(--mute);font-variant-numeric:tabular-nums}
+.band .bd{display:none;font-size:11px;line-height:1.3;color:var(--mute);text-align:left;margin-top:5px;font-variant-numeric:normal}
+.showdesc .crit{align-items:start}
+.showdesc .band{text-align:left;padding:7px 7px 8px;display:flex;flex-direction:column;justify-content:flex-start}
+.wrap.showdesc{max-width:1240px}
+.showdesc .band .bd{display:block}
+.showdesc .band.on .bd{color:var(--sel-ink);opacity:.9}
+.showdesc .desc{display:none}
+
+.band:hover{background:var(--accent-soft)}
+.band.on{background:var(--accent);color:var(--sel-ink)}
+.band.on span{color:var(--sel-ink);opacity:.85}
+.score{display:flex;align-items:baseline;gap:4px;justify-content:flex-end}
+.score input{width:54px;text-align:right;border:0;border-bottom:1px solid var(--line);background:transparent;padding:4px 2px;font-variant-numeric:tabular-nums;font-size:15px;outline:none}
+.score input:focus{border-bottom-color:var(--accent)}
+.score input.bad{border-bottom-color:var(--warn);color:var(--warn)}
+.score .of{color:var(--mute);font-size:12px}
+.desc{grid-column:2 / 4;font-size:12px;color:var(--mute);min-height:0}
+.desc:empty{display:none}
+
+.student{border-left:3px solid var(--line);padding:2px 0 10px 16px;margin:18px 0 0}
+.student.complete{border-left-color:var(--done)}
+.shead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:6px 0 2px}
+.shead .sname{font-weight:600;font-size:15px}
+.shead .sid{font-family:var(--mono);font-size:12px;color:var(--mute)}
+.shead .stot{margin-left:auto;font-variant-numeric:tabular-nums}
+.shead .stot b{font-size:16px}
+.shead .acts{display:flex;gap:12px}
+textarea.note{display:block;width:100%;min-height:34px;resize:vertical;border:0;border-bottom:1px solid var(--line);background:transparent;padding:6px 0;margin-top:8px;outline:none;font-size:13px}
+textarea.note:focus{border-bottom-color:var(--accent)}
+.addrow{margin-top:22px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.addrow input{max-width:320px}
+.sugg{width:100%}
+.sugg button{display:block;text-align:left;padding:4px 0;font-size:13px}
+.sugg button:hover{color:var(--accent)}
+.empty{color:var(--mute);padding:60px 0;text-align:center}
+.toast{position:fixed;bottom:16px;right:16px;background:var(--ink);color:var(--bg);padding:8px 14px;font-size:13px;opacity:0;pointer-events:none}
+.toast.show{opacity:1}
+.kbd{font-family:var(--mono);font-size:11px;border-bottom:1px solid var(--line);padding:0 3px}
+.hint{font-size:12px;color:var(--mute);margin-top:30px}
+.banner{background:var(--warn);color:var(--sel-ink);padding:8px 16px;font-size:13px;display:none}
+.banner.show{display:block}
+.savestate{font-size:12px;color:var(--mute);padding:0 16px 8px}
+.savestate.stale{color:var(--warn)}
+.guide{max-width:620px;margin:40px auto;color:var(--ink)}
+.guide h2{font-size:18px;margin:0 0 12px}
+.guide ol{padding-left:20px;margin:0 0 16px}
+.guide li{margin:6px 0}
+.guide p{color:var(--mute);font-size:13px}
+.bottomnav{display:flex;justify-content:space-between;gap:16px;margin-top:28px;padding-top:14px;border-top:1px solid var(--line)}
+.bottomnav .link{font-size:14px}
+/* tablets and narrow windows: bands get the full row */
+@media (max-width:1100px){
+  .crit{grid-template-columns:1fr 92px}
+  .crit .bands{grid-column:1 / 3;grid-row:2}
+  .desc{grid-column:1 / 3}
+}
+/* iPad portrait and phones: group list becomes a full-screen panel */
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  aside{position:fixed;inset:0;z-index:30;display:none;border-right:0;padding-top:env(safe-area-inset-top)}
+  aside.open{display:flex}
+  .side-head h1{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+  .sideclose{display:inline-block;font-size:15px;font-weight:600;text-decoration:none}
+  .mbar{display:flex;position:sticky;top:0;z-index:10;background:var(--panel);border-bottom:1px solid var(--line);padding:10px 16px;gap:14px;align-items:center}
+  .mbtn{font-weight:600;color:var(--accent);padding:6px 0;white-space:nowrap}
+  #mcur{font-family:var(--mono);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+  #mprog{font-size:12px;color:var(--mute);white-space:nowrap}
+  .wrap{padding:16px 20px 80px}
+  .toast{left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom))}
+}
+/* phones */
+@media (max-width:600px){
+  .wrap{padding:12px 16px 80px}
+  .top h2{font-size:18px}
+  .top .nav{margin-left:0;width:100%;justify-content:space-between}
+  .crit{grid-template-columns:1fr auto}
+  .score{white-space:nowrap}
+  .crit .bands{display:grid;grid-template-columns:repeat(3,1fr)}
+  .band{border-bottom:1px solid var(--line);min-width:0}
+  .band:nth-child(3n){border-right:0}
+  .band:nth-child(n+4){border-bottom:0}
+  .student{padding-left:12px}
+  .shead .stot{margin-left:0;width:100%}
+  .addrow input{max-width:none}
+}
+/* touch screens: bigger targets, no zoom-on-focus */
+@media (pointer:coarse){
+  input,select,textarea,.field,textarea.note,.addrow input{font-size:16px}
+  .link,.mbtn,.sideclose{min-height:44px}
+  .score input{font-size:17px;width:62px}
+  .band{min-height:50px}
+  .link{padding:7px 0;font-size:13px}
+  .side-foot{gap:0 18px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+  .side-foot .link{padding:12px 0;font-size:14px}
+  .top .nav .link{padding:10px 0}
+  .gitem{padding:11px 16px 11px 13px}
+  .sugg button{padding:10px 0}
+  .shead .acts{gap:16px}
+  .kb{display:none}
+}
+@media (hover:none){
+  .band:hover{background:none}
+  .band.on:hover{background:var(--accent)}
+  .gitem:hover{background:none}
+  .gitem.active:hover{background:var(--accent-soft)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="side-head">
+      <h1><span>DATA1002/1902 Poster Marker</span><button class="link sideclose" id="closeSide">Done</button></h1>
+      <select id="tut" class="field" aria-label="Tutorial"></select>
+      <input id="q" class="field" placeholder="Search group, name, SID, unikey" aria-label="Search">
+      <input id="marker" class="field" placeholder="Your name (marker)" aria-label="Marker name">
+    </div>
+    <div class="progress" id="progress"></div>
+    <div class="savestate" id="savestate"></div>
+    <div class="glist" id="glist"></div>
+    <div class="side-foot">
+      <button class="link" id="exportCsv">Export marks CSV</button>
+      <button class="link" id="exportXlsx">Export marks Excel</button>
+      <button class="link" id="backup">Backup</button>
+      <button class="link" id="restore">Restore</button>
+      <button class="link" id="merge">Merge backups</button>
+      <button class="link" id="roster">Load roster CSV</button>
+    </div>
+  </aside>
+  <main id="main"><div class="mbar"><button class="mbtn" id="groupsBtn">Groups</button><span id="mcur">Choose a group</span><span id="mprog"></span></div><div class="banner" id="banner"></div><div class="wrap" id="view">
+  <div class="guide" id="notStarted"><h2>The marker has not started</h2>
+  <p style="color:var(--ink);font-size:14px">If the tutorial menu and group list on the left are empty, this file is being shown in a preview (Outlook, Teams, OneDrive, SharePoint, Gmail or Google Drive), and previews do not run the app.</p>
+  <ol><li><b>Download</b> the file to your computer (for example to Documents).</li>
+  <li>Find it in Finder or File Explorer, right-click it, choose <b>Open With</b>, then <b>Google Chrome</b> or <b>Microsoft Edge</b>.</li>
+  <li>The address bar should start with <b>file://</b>. Bookmark it so you reopen the same copy each time, because your marks are saved with that copy in that browser.</li></ol>
+  <p id="startErr"></p></div>
+</div></main>
+</div>
+<input type="file" id="fileJson" accept=".json,application/json" hidden>
+<input type="file" id="fileMerge" accept=".json,application/json" multiple hidden>
+<input type="file" id="fileCsv" accept=".csv,text/csv" hidden>
+<div class="toast" id="toast"></div>
+
+<script>
+window.addEventListener("error",e=>{const el=document.getElementById("startErr");if(el)el.textContent="Error while starting: "+(e.message||e)+". Please use a current version of Chrome or Edge.";});
+</script>
+<script>
+const BAND_NAMES=["Excellent","Very Good","Good","Average","Fail","None"];
+const GROUP_CRIT=[
+ {id:"ov",name:"Project Overview and Context",max:3,b:[[2.55,3],[2.25,2.54],[1.95,2.24],[1.5,1.94],[0.05,1.49],[0,0]],d:["Project objectives, stakeholders, and datasets are clearly presented and strongly motivate the investigation.","Context is clearly presented with only minor omissions.","Context is understandable and relevant.","Context is only partially explained or lacks clarity.","Context is unclear, incomplete, or poorly justified.","No meaningful project overview provided."]},
+ {id:"s1",name:"Connection to Stage 1 Project",max:1,b:[[0.85,1],[0.75,0.84],[0.65,0.74],[0.5,0.64],[0.01,0.49],[0,0]],d:["Clearly demonstrates how Stage 2 extends, validates, or deepens findings from Stage 1.","Strong connection to Stage 1 with minor omissions.","Reasonable connection established.","Limited discussion of Stage 1.","Weak or unclear connection.","No connection to Stage 1."]},
+ {id:"gf",name:"Group Findings and Conclusions",max:10,b:[[8.5,10],[7.5,8.4],[6.5,7.4],[5,6.4],[0.2,4.99],[0,0]],d:["Findings from all members are synthesised into a coherent, insightful, and evidence based narrative.","Findings are well integrated and supported by evidence.","Findings are appropriately combined with reasonable synthesis.","Some integration is evident but lacks depth.","Little evidence of integration across members.","No meaningful group conclusions provided."]},
+ {id:"ai",name:"Reflection on the Use of GenAI",max:3,b:[[2.55,3],[2.25,2.54],[1.95,2.24],[1.5,1.94],[0.05,1.49],[0,0]],d:["Reflection critically evaluates benefits, risks, limitations, and validation strategies.","Good discussion of GenAI usage and lessons learned.","Reasonable discussion of strengths and limitations.","Reflection is largely descriptive.","Reflection is superficial or incomplete.","No reflection provided."]},
+ {id:"ds",name:"Poster Design and Visual Communication",max:3,b:[[2.55,3],[2.25,2.54],[1.95,2.24],[1.5,1.94],[0.05,1.49],[0,0]],d:["Poster is visually engaging, professionally designed, easy to navigate, and effectively communicates findings.","Strong visual design with good readability and organisation.","Design is functional and generally clear.","Poster is cluttered or difficult to navigate in places.","Poor design significantly hinders communication.","Poster not submitted."]},
+ {id:"qa",name:"Poster Discussion and Q&A",max:5,b:[[4.25,5],[3.75,4.24],[3.25,3.74],[2.5,3.24],[0.01,2.49],[0,0]],d:["Group answers questions confidently and accurately, demonstrates ownership of the work, and justifies important analytical decisions using appropriate evidence.","Group answers most questions correctly and demonstrates good understanding.","Group answers common questions adequately and demonstrates reasonable understanding.","Group demonstrates partial understanding and struggles with more complex questions.","Group is unable to explain important aspects of the project or answer basic questions.","Group absent from the poster session or unable to participate meaningfully."]}
+];
+const IND_CRIT=[
+ {id:"an",name:"Individual Analysis and Visualisation",max:40,b:[[34,40],[30,33.99],[26,29.99],[20,25.99],[0.4,19.99],[0,0]],d:["Analysis is technically sound, comprehensive, and supported by highly effective visualisations.","Analysis is correct and visualisations communicate findings effectively.","Analysis and visualisations are generally correct with minor weaknesses.","Basic analysis is provided but lacks depth, rigour, or clarity.","Analysis contains major errors or provides weak evidence.","No meaningful analysis presented."]},
+ {id:"in",name:"Individual Insights and Interpretation",max:20,b:[[17,20],[15,16.99],[13,14.99],[10,12.99],[0.2,9.99],[0,0]],d:["Demonstrates strong interpretation, critical thinking, and clear connection between evidence and conclusions.","Insights are well supported and demonstrate good understanding.","Interpretation is reasonable and supported by evidence.","Interpretation is mostly descriptive.","Weak or unsupported interpretation.","No meaningful interpretation provided."]},
+ {id:"co",name:"Individual Explanation of Contribution",max:15,b:[[12.75,15],[11.25,12.74],[9.75,11.24],[7.5,9.74],[0.15,7.49],[0,0]],d:["Individual contribution is clearly explained, justified, and connected to the overall project.","Contribution is clearly explained with good supporting evidence.","Contribution is adequately described and understandable.","Explanation lacks detail or clarity.","Contribution is poorly explained or difficult to identify.","No individual contribution identified."]}
+];
+const GROUP_MAX=GROUP_CRIT.reduce((a,c)=>a+c.max,0), IND_MAX=IND_CRIT.reduce((a,c)=>a+c.max,0);
+
+const EMBEDDED_ROSTER=[];
+const KEY="poster-marker-v1";
+
+/* ---------- state ---------- */
+function safeGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function safeSet(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
+let S=(()=>{try{return JSON.parse(safeGet(KEY))}catch(e){return null}})()||{};
+S.groups=S.groups||{}; S.students=S.students||{}; S.moves=S.moves||{}; S.ui=S.ui||{};
+let roster=S.roster||EMBEDDED_ROSTER;
+let saveTimer=null, storageOk=true;
+function storageWorks(){try{const k=KEY+"-probe";localStorage.setItem(k,"1");const ok=localStorage.getItem(k)==="1";localStorage.removeItem(k);return ok}catch(e){return false}}
+function flush(){clearTimeout(saveTimer);saveTimer=null;storageOk=safeSet(KEY,JSON.stringify(S));renderSaveState()}
+function save(){flush()}
+function touched(){S.ui.edits=(S.ui.edits||0)+1}
+function ago(t){const m=Math.round((Date.now()-t)/60000);return m<1?"just now":m<60?m+" min ago":m<1440?Math.round(m/60)+" h ago":Math.round(m/1440)+" days ago"}
+function renderSaveState(){
+  const el=$("#savestate"); if(!el) return;
+  const b=S.ui.lastBackup, n=S.ui.edits||0;
+  el.textContent=(storageOk?"Saved in this browser":"NOT SAVING in this browser")+" · "+(b?"last backup "+ago(b):"no backup yet")+(n?` (${n} change${n>1?"s":""} since)`:"");
+  el.classList.toggle("stale",!storageOk||n>=40);
+  $("#banner").classList.toggle("show",!storageOk);
+  $("#banner").textContent="This browser is not keeping your marks (storage is blocked or full). Open the file in Chrome or Edge, or press Backup after every group.";
+}
+window.addEventListener("storage",e=>{
+  if(e.key!==KEY||!e.newValue) return;
+  try{const d=JSON.parse(e.newValue);const ui=S.ui;S=d;S.ui=Object.assign({},d.ui,{cur:ui.cur,tut:ui.tut});}catch(err){return}
+  roster=S.roster||EMBEDDED_ROSTER;rebuild();renderList();
+  const a=document.activeElement; if(!(a&&a.closest&&a.closest("#view")&&a.matches("input,textarea"))) renderView();
+  renderSaveState();
+});
+
+/* ---------- roster helpers ---------- */
+function tutKey(s){return s.tut&&s.tut!=="?"?s.unit+" T"+s.tut:"No tutorial"}
+function baseGroup(s){return s.g?s.g:"solo:"+s.sid}
+function groupOf(s){return S.moves[s.sid]||baseGroup(s)}
+let groups={}, byId={};
+function rebuild(){
+  groups={}; byId={};
+  for(const s of roster){byId[s.sid]=s}
+  for(const s of roster){
+    const g=groupOf(s);
+    if(!groups[g]) groups[g]={id:g,members:[],solo:g.startsWith("solo:")};
+    groups[g].members.push(s);
+  }
+  for(const g of Object.values(groups)){
+    g.members.sort((a,b)=>a.n.localeCompare(b.n));
+    const tc={}; g.members.forEach(m=>tc[tutKey(m)]=(tc[tutKey(m)]||0)+1);
+    g.tut=Object.entries(tc).sort((a,b)=>b[1]-a[1])[0][0];
+    g.label=g.solo?"No group: "+g.members[0].n:g.id;
+  }
+}
+function displayName(n){const i=n.indexOf(", ");return i<0?n:n.slice(i+2)+" "+n.slice(0,i)}
+
+/* ---------- marks ---------- */
+function bandOf(c,v){
+  if(v===""||v==null||isNaN(v)) return -1;
+  if(v>c.max||v<0) return -2;
+  for(let i=0;i<5;i++){ if(v>=c.b[i][0]) return i }
+  return v>0?4:5;
+}
+function defaultFor(c,i){const [lo,hi]=c.b[i];return Math.floor((lo+hi)/2*10+0.5)/10}
+function gm(gid){return S.groups[gid]||(S.groups[gid]={m:{},note:""})}
+function stamp(o){if(S.ui.marker)o.by=S.ui.marker}
+function sm(sid){return S.students[sid]||(S.students[sid]={m:{},note:""})}
+function sumCrit(list,marks){let t=0,n=0;for(const c of list){const v=marks[c.id];if(typeof v==="number"){t+=v;n++}}return{t,n,done:n===list.length}}
+function groupTotal(gid){return sumCrit(GROUP_CRIT,(S.groups[gid]||{m:{}}).m)}
+function indTotal(sid){return sumCrit(IND_CRIT,(S.students[sid]||{m:{}}).m)}
+function fmt(x){return (Math.round(x*100)/100).toString()}
+function groupStatus(g){
+  const gt=groupTotal(g.id); let anyInd=false, allInd=true;
+  for(const m of g.members){const it=indTotal(m.sid); if(it.n) anyInd=true; if(!it.done) allInd=false}
+  if(gt.done&&allInd) return "done";
+  if(gt.n||anyInd) return "part";
+  return "";
+}
+
+/* ---------- sidebar ---------- */
+const $=s=>document.querySelector(s);
+function tutOrder(a,b){const na=a==="No tutorial",nb=b==="No tutorial";if(na||nb)return na-nb;const[ua,ta]=a.split(" T"),[ub,tb]=b.split(" T");return ua.localeCompare(ub)||(+ta)-(+tb)}
+function renderTutSelect(){
+  const tuts=[...new Set(roster.map(tutKey))].sort(tutOrder);
+  const sel=$("#tut");
+  sel.innerHTML='<option value="">All tutorials</option>'+tuts.map(t=>`<option>${t}</option>`).join("");
+  sel.value=S.ui.tut&&tuts.includes(S.ui.tut)?S.ui.tut:"";
+}
+function visibleGroups(){
+  const t=$("#tut").value, q=$("#q").value.trim().toLowerCase();
+  let list=Object.values(groups);
+  if(t) list=list.filter(g=>g.tut===t||g.members.some(m=>tutKey(m)===t));
+  if(q) list=list.filter(g=>g.id.toLowerCase().includes(q)||g.members.some(m=>(m.n+" "+m.sid+" "+m.login).toLowerCase().includes(q)));
+  list.sort((a,b)=>(a.solo-b.solo)||tutOrder(a.tut,b.tut)||a.label.localeCompare(b.label,undefined,{numeric:true}));
+  return list;
+}
+function renderList(){
+  const list=visibleGroups();
+  const done=list.filter(g=>groupStatus(g)==="done").length;
+  $("#progress").textContent=`${done} of ${list.length} groups complete`;
+  $("#mprog").textContent=`${done}/${list.length} done`;
+  $("#mcur").textContent=groups[S.ui.cur]?groups[S.ui.cur].label:(roster.length?"Choose a group":"No students loaded");
+  $("#glist").innerHTML=list.map(g=>{
+    const st=groupStatus(g);
+    const stTxt=st==="done"?"done":st==="part"?"in progress":"";
+    return `<button class="gitem${g.id===S.ui.cur?" active":""}" data-g="${esc(g.id)}">
+      <span class="st ${st}">${stTxt}</span>
+      <div class="gname">${esc(g.label)}</div>
+      <div class="gmeta">${g.tut} · ${g.members.length} student${g.members.length>1?"s":""}</div></button>`}).join("")||`<div class="empty">${roster.length?"No groups match":"No students loaded yet. Use Load roster CSV below."}</div>`;
+}
+
+/* ---------- main view ---------- */
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function critRow(c,marks,scope,key){
+  const v=marks[c.id]; const bi=bandOf(c,v);
+  const bands=c.b.map((r,i)=>{
+    const range=i===5?"0":`${fmt(r[0])}–${fmt(r[1])}`;
+    return `<button class="band${bi===i?" on":""}" data-scope="${scope}" data-key="${esc(key)}" data-c="${c.id}" data-i="${i}" title="${esc(c.d[i])}">${BAND_NAMES[i]}<span>${range}</span><span class="bd">${esc(c.d[i])}</span></button>`}).join("");
+  return `<div class="crit" data-row="${scope}:${esc(key)}:${c.id}">
+    <div class="cname">${c.name}<small>${c.max} mark${c.max>1?"s":""}</small></div>
+    <div class="bands">${bands}</div>
+    <div class="score"><input inputmode="decimal" data-scope="${scope}" data-key="${esc(key)}" data-c="${c.id}" value="${typeof v==="number"?fmt(v):""}" class="${bi===-2?"bad":""}" aria-label="${c.name} mark"><span class="of">/ ${c.max}</span></div>
+    <div class="desc">${bi>=0?esc(c.d[bi]):""}</div></div>`;
+}
+function renderView(){
+  const g=groups[S.ui.cur];
+  if(!g&&!roster.length){$("#view").innerHTML=`<div class="guide"><h2>Load the student list</h2>
+    <p style="color:var(--ink);font-size:14px">This copy of the marker has no students in it yet. Load the groups CSV your coordinator sent you (the Canvas group export). It stays on this device only.</p>
+    <p><button class="link" id="loadRoster2" style="font-size:15px">Load roster CSV</button></p>
+    <p>On iPhone or iPad: save the CSV to Files first (for example from email or OneDrive), then tap Load roster CSV and pick it.</p></div>`;return}
+  if(!g){$("#view").innerHTML=`<div class="guide"><h2>How to mark</h2><ol>
+    <li>Type your name in <b>Your name (marker)</b> in the group panel (on the left, or under <b>Groups</b> at the top on phones and iPads). It is recorded against every mark you give.</li>
+    <li>Choose your tutorial from the drop-down, then click a group.</li>
+    <li>For each criterion, click a band (Excellent to None). It fills in a mark from the middle of that band. Type over the number to fine-tune.</li>
+    <li>Mark each student's individual criteria the same way. Totals out of 100 update as you go. A green bar means that student is fully marked.</li>
+    <li>Students without a group appear as <b>No group: Name</b>. If they presented with a group, open that group and add them at the bottom.</li>
+    <li>Press <b>Backup</b> regularly (at least at the end of each session) and keep the file. When finished, send your backup file to the coordinator, or use <b>Export marks CSV</b>.</li>
+    <li>Tick <b>Show descriptors</b> (top right of a group) to see the full rubric text on every band. <b>Copy comment</b> on a student copies their marks, bands and descriptors, ready to paste into SpeedGrader. <b>Export marks Excel</b> gives a readable spreadsheet for copying totals into Canvas.</li>
+  </ol><p>Marks are saved automatically, but only inside this browser on this computer. Clearing browsing data or switching browser loses them, which is why backups matter. Chrome or Edge recommended.</p></div>`;return}
+  const G=gm(g.id), gt=groupTotal(g.id);
+  let h=`<div class="top"><h2>${esc(g.label)}</h2><span class="meta">${g.tut} · ${g.members.length} student${g.members.length>1?"s":""}</span>
+    <div class="nav"><button class="link" id="descToggle">${S.ui.showDesc?"Hide":"Show"} descriptors</button><button class="link" id="prev">Previous</button><button class="link" id="next">Next group</button></div></div>
+    <div class="summary" id="summary"></div>
+    <h3><span>Group component</span><span class="tot" id="gtot"></span></h3>`;
+  h+=GROUP_CRIT.map(c=>critRow(c,G.m,"g",g.id)).join("");
+  h+=`<textarea class="note" data-note="g" data-key="${esc(g.id)}" placeholder="Group feedback">${esc(G.note||"")}</textarea>`;
+  h+=`<h3><span>Individual component</span><span class="tot">/ ${IND_MAX} each</span></h3>`;
+  for(const m of g.members){
+    const M=sm(m.sid);
+    h+=`<div class="student" data-sid="${m.sid}"><div class="shead"><span class="sname">${esc(displayName(m.n))}</span>
+      <span class="sid">${m.sid} · ${esc(m.login)} · ${tutKey(m)}</span>
+      <span class="acts"><button class="link" data-act="copyc" data-sid="${m.sid}" title="Copy a SpeedGrader comment with every mark, band and descriptor">Copy comment</button>${g.members.length>1?`<button class="link" data-act="fillgroup" data-sid="${m.sid}" title="Copy these individual marks to the other members">Copy to others</button>`:""}
+      ${g.members.length>1||S.moves[m.sid]?`<button class="link" data-act="remove" data-sid="${m.sid}">Remove from group</button>`:""}</span>
+      <span class="stot" data-stot="${m.sid}"></span></div>`;
+    h+=IND_CRIT.map(c=>critRow(c,M.m,"s",m.sid)).join("");
+    h+=`<textarea class="note" data-note="s" data-key="${m.sid}" placeholder="Feedback for ${esc(displayName(m.n))}">${esc(M.note||"")}</textarea></div>`;
+  }
+  h+=`<div class="addrow"><input class="field" id="addq" placeholder="Add a student to this group (name, SID, unikey)"><div class="sugg" id="sugg"></div></div>
+  <div class="bottomnav"><button class="link" id="prev2">Previous group</button><button class="link" id="next2">Next group</button></div>
+  <p class="hint">Tap or click a band to drop in a mid-band mark, then adjust the number if needed. Everything saves automatically on this device.<span class="kb"> Shortcuts: <span class="kbd">Alt ↓</span> next group, <span class="kbd">Alt ↑</span> previous.</span></p>`;
+  $("#view").innerHTML=h;
+  $("#view").classList.toggle("showdesc",!!S.ui.showDesc);
+  refreshTotals();
+}
+function refreshTotals(){
+  const g=groups[S.ui.cur]; if(!g) return;
+  const gt=groupTotal(g.id);
+  $("#gtot").innerHTML=`<b>${fmt(gt.t)}</b> / ${GROUP_MAX}`;
+  const parts=[];
+  for(const m of g.members){
+    const it=indTotal(m.sid), total=gt.t+it.t, done=gt.done&&it.done;
+    const el=document.querySelector(`[data-stot="${m.sid}"]`);
+    if(el) el.innerHTML=`ind <b>${fmt(it.t)}</b>/${IND_MAX} · total <b>${fmt(total)}</b>/100`;
+    const blk=document.querySelector(`.student[data-sid="${m.sid}"]`);
+    if(blk) blk.classList.toggle("complete",it.done);
+    parts.push(`<span>${esc(displayName(m.n).split(" ")[0])} <b>${done?fmt(total):"…"}</b></span>`);
+  }
+  $("#summary").innerHTML="<span>Totals /100:</span>"+parts.join("");
+}
+function updateRow(scope,key,cid){
+  const list=scope==="g"?GROUP_CRIT:IND_CRIT, c=list.find(x=>x.id===cid);
+  const marks=scope==="g"?gm(key).m:sm(key).m;
+  const row=document.querySelector(`[data-row="${scope}:${CSS.escape(key)}:${cid}"]`); if(!row) return;
+  const bi=bandOf(c,marks[cid]);
+  row.querySelectorAll(".band").forEach((b,i)=>b.classList.toggle("on",i===bi));
+  row.querySelector(".desc").textContent=bi>=0?c.d[bi]:"";
+  const inp=row.querySelector("input");
+  if(document.activeElement!==inp||marks[cid]!==undefined) inp.classList.toggle("bad",bi===-2);
+  if(document.activeElement!==inp) inp.value=typeof marks[cid]==="number"?fmt(marks[cid]):"";
+}
+function changed(){touched();save();refreshTotals();renderList();renderSaveState()}
+
+/* ---------- events ---------- */
+$("#glist").addEventListener("click",e=>{const b=e.target.closest(".gitem");if(!b)return;openGroup(b.dataset.g)});
+function openGroup(id){S.ui.cur=id;save();$("aside").classList.remove("open");renderList();renderView();$("#main").scrollTop=0;
+  const a=document.querySelector(".gitem.active"); if(a) a.scrollIntoView({block:"nearest"})}
+$("#groupsBtn").addEventListener("click",()=>{$("aside").classList.add("open");const a=document.querySelector(".gitem.active");if(a)a.scrollIntoView({block:"center"})});
+$("#closeSide").addEventListener("click",()=>$("aside").classList.remove("open"));
+$("#tut").addEventListener("change",()=>{S.ui.tut=$("#tut").value;save();renderList()});
+$("#q").addEventListener("input",renderList);
+function step(d){const list=visibleGroups();if(!list.length)return;let i=list.findIndex(g=>g.id===S.ui.cur);i=i<0?0:Math.min(list.length-1,Math.max(0,i+d));openGroup(list[i].id)}
+document.addEventListener("keydown",e=>{if(e.altKey&&e.key==="ArrowDown"){e.preventDefault();step(1)}if(e.altKey&&e.key==="ArrowUp"){e.preventDefault();step(-1)}});
+
+$("#view").addEventListener("click",e=>{
+  if(e.target.id==="next"||e.target.id==="next2") return step(1);
+  if(e.target.id==="prev"||e.target.id==="prev2") return step(-1);
+  if(e.target.id==="loadRoster2") return $("#fileCsv").click();
+  if(e.target.id==="descToggle"){S.ui.showDesc=!S.ui.showDesc;save();$("#view").classList.toggle("showdesc",S.ui.showDesc);e.target.textContent=(S.ui.showDesc?"Hide":"Show")+" descriptors";return}
+  if(e.target.dataset.act==="copyc"){copyText(feedbackText(byId[e.target.dataset.sid])).then(ok=>toast(ok?"Comment copied. Paste it into SpeedGrader.":"Could not copy. Select the text in the export instead."));return}
+  const band=e.target.closest(".band");
+  if(band){
+    const {scope,key,c,i}=band.dataset; const list=scope==="g"?GROUP_CRIT:IND_CRIT; const crit=list.find(x=>x.id===c);
+    const marks=scope==="g"?gm(key).m:sm(key).m;
+    if(bandOf(crit,marks[c])===+i){delete marks[c]} else marks[c]=defaultFor(crit,+i);
+    stamp(scope==="g"?gm(key):sm(key));
+    updateRow(scope,key,c); changed(); return;
+  }
+  const act=e.target.dataset.act;
+  if(act==="fillgroup"){
+    const src=sm(e.target.dataset.sid).m; const g=groups[S.ui.cur];
+    for(const m of g.members) if(m.sid!==e.target.dataset.sid){stamp(sm(m.sid));const t=sm(m.sid).m;for(const c of IND_CRIT){if(c.id in src)t[c.id]=src[c.id];else delete t[c.id]}for(const c of IND_CRIT)updateRow("s",m.sid,c.id)}
+    changed(); toast("Copied individual marks to the rest of the group"); return;
+  }
+  if(act==="remove"){
+    const s=byId[e.target.dataset.sid]; const target="solo:"+s.sid;
+    if(S.moves[s.sid]) delete S.moves[s.sid]; else S.moves[s.sid]=target;
+    if(S.moves[s.sid]===baseGroup(s)) delete S.moves[s.sid];
+    const now=groupOf(s);
+    touched();rebuild();save();renderList();renderView();toast(`${displayName(s.n)} moved to ${now.startsWith("solo:")?"no group":now}`);return;
+  }
+  const sug=e.target.closest("[data-add]");
+  if(sug){
+    const s=byId[sug.dataset.add]; const gid=S.ui.cur;
+    if(baseGroup(s)===gid) delete S.moves[s.sid]; else S.moves[s.sid]=gid;
+    touched();rebuild();save();renderList();renderView();toast(`${displayName(s.n)} added`);return;
+  }
+});
+$("#view").addEventListener("input",e=>{
+  const t=e.target;
+  if(t.matches(".score input")){
+    const {scope,key,c}=t.dataset; const marks=scope==="g"?gm(key).m:sm(key).m;
+    const list=scope==="g"?GROUP_CRIT:IND_CRIT, crit=list.find(x=>x.id===c);
+    const v=t.value.trim().replace(",",".");
+    const n=/^\d*\.?\d+$|^\d+\.$/.test(v)?parseFloat(v):NaN;
+    if(v==="") delete marks[c];
+    else if(isNaN(n)||n>crit.max){ delete marks[c]; t.classList.add("bad"); stamp(scope==="g"?gm(key):sm(key)); changed(); return }
+    else marks[c]=n;
+    stamp(scope==="g"?gm(key):sm(key));
+    updateRow(scope,key,c); changed(); return;
+  }
+  if(t.matches("textarea.note")){const o=t.dataset.note==="g"?gm(t.dataset.key):sm(t.dataset.key);o.note=t.value;stamp(o);if(!t.dataset.dirty){t.dataset.dirty=1;touched()}save();return}
+  if(t.id==="addq"){
+    const q=t.value.trim().toLowerCase(); const box=$("#sugg");
+    if(q.length<2){box.innerHTML="";return}
+    const cur=groups[S.ui.cur];
+    const hits=roster.filter(s=>groupOf(s)!==cur.id&&(s.n+" "+s.sid+" "+s.login).toLowerCase().includes(q)).slice(0,8);
+    box.innerHTML=hits.map(s=>{const g=groupOf(s);return `<button data-add="${s.sid}">${esc(displayName(s.n))} <span class="sid">${s.sid} · ${tutKey(s)} · ${g.startsWith("solo:")?"no group":esc(g)}</span></button>`}).join("")||'<span class="sid">No match</span>';
+  }
+});
+$("#view").addEventListener("focusout",e=>{const t=e.target;if(t.matches(".score input")&&!t.classList.contains("bad"))updateRow(t.dataset.scope,t.dataset.key,t.dataset.c)});
+
+/* ---------- feedback comment ---------- */
+function critLines(list,marks){
+  return list.map(c=>{const v=marks[c.id];const bi=bandOf(c,v);
+    return bi<0?`- ${c.name}: not marked`:`- ${c.name}: ${fmt(v)}/${c.max} (${bi===5?"No inclusion":BAND_NAMES[bi]}). ${c.d[bi]}`}).join("\n");
+}
+function feedbackText(s){
+  const gid=groupOf(s), G=S.groups[gid]||{m:{},note:""}, M=S.students[s.sid]||{m:{},note:""};
+  const gt=groupTotal(gid), it=indTotal(s.sid);
+  let t=`Poster mark: ${fmt(gt.t+it.t)}/100${gt.done&&it.done?"":" (incomplete)"}\n\nGroup component: ${fmt(gt.t)}/${GROUP_MAX}\n${critLines(GROUP_CRIT,G.m)}`;
+  if((G.note||"").trim()) t+=`\nGroup feedback: ${G.note.trim()}`;
+  t+=`\n\nIndividual component: ${fmt(it.t)}/${IND_MAX}\n${critLines(IND_CRIT,M.m)}`;
+  if((M.note||"").trim()) t+=`\nIndividual feedback: ${M.note.trim()}`;
+  return t;
+}
+async function copyText(t){
+  try{await navigator.clipboard.writeText(t);return true}catch(e){}
+  try{const ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();const ok=document.execCommand("copy");ta.remove();return ok}catch(e){return false}
+}
+
+/* ---------- export / import ---------- */
+function csvCell(v){v=v==null?"":String(v);if(/^[=+\-@\t\r]/.test(v)&&isNaN(v))v="'"+v;return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+const IS_IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+function download(name,text,type){
+  const blob=text instanceof Blob?text:new Blob([text],{type});
+  if(IS_IOS&&navigator.canShare){
+    try{const f=new File([blob],name,{type:blob.type||type});
+      if(navigator.canShare({files:[f]})){navigator.share({files:[f]}).catch(e=>{if(!e||e.name!=="AbortError")saveLink(name,blob)});return}}catch(e){}
+  }
+  saveLink(name,blob);
+}
+function saveLink(name,blob){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+$("#exportCsv").addEventListener("click",()=>{
+  const head=["name","sid","unikey","canvas_user_id","unit","tutorial","group",...GROUP_CRIT.map(c=>c.name+" /"+c.max),"Group total /"+GROUP_MAX,...IND_CRIT.map(c=>c.name+" /"+c.max),"Individual total /"+IND_MAX,"Total /100","complete","group feedback","individual feedback","group marked by","individual marked by","SpeedGrader comment"];
+  const rows=[head];
+  const ordered=[...roster].sort((a,b)=>tutOrder(tutKey(a),tutKey(b))||groupOf(a).localeCompare(groupOf(b))||a.n.localeCompare(b.n));
+  for(const s of ordered){
+    const gid=groupOf(s), G=S.groups[gid]||{m:{},note:""}, M=S.students[s.sid]||{m:{},note:""};
+    const gt=groupTotal(gid), it=indTotal(s.sid);
+    if(!gt.n&&!it.n) continue;
+    rows.push([s.n,s.sid,s.login,s.cid,s.unit,s.tut,gid.startsWith("solo:")?"":gid,...GROUP_CRIT.map(c=>G.m[c.id]??""),fmt(gt.t),...IND_CRIT.map(c=>M.m[c.id]??""),fmt(it.t),fmt(gt.t+it.t),gt.done&&it.done?"yes":"no",G.note||"",M.note||"",G.by||"",M.by||"",feedbackText(s)]);
+  }
+  download(`poster-marks-${new Date().toISOString().slice(0,10)}.csv`,"﻿"+rows.map(r=>r.map(csvCell).join(",")).join("\r\n"),"text/csv");
+  toast(`Exported ${rows.length-1} marked students`);
+});
+
+/* ---------- xlsx (stored zip + SpreadsheetML, no libraries) ---------- */
+const CRC_T=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC_T[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+function zipBlob(files,type){
+  const enc=new TextEncoder(), parts=[], central=[]; let off=0;
+  const d=new Date(), time=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1), date=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
+  for(const f of files){
+    const name=enc.encode(f.name), data=enc.encode(f.data), crc=crc32(data);
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(10,time,true);lh.setUint16(12,date,true);
+    lh.setUint32(14,crc,true);lh.setUint32(18,data.length,true);lh.setUint32(22,data.length,true);lh.setUint16(26,name.length,true);
+    parts.push(new Uint8Array(lh.buffer),name,data);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(12,time,true);ch.setUint16(14,date,true);
+    ch.setUint32(16,crc,true);ch.setUint32(20,data.length,true);ch.setUint32(24,data.length,true);ch.setUint16(28,name.length,true);ch.setUint32(42,off,true);
+    central.push(new Uint8Array(ch.buffer),name);
+    off+=30+name.length+data.length;
+  }
+  const cdSize=central.reduce((a,b)=>a+b.length,0), end=new DataView(new ArrayBuffer(22));
+  end.setUint32(0,0x06054b50,true);end.setUint16(8,files.length,true);end.setUint16(10,files.length,true);end.setUint32(12,cdSize,true);end.setUint32(16,off,true);
+  return new Blob([...parts,...central,new Uint8Array(end.buffer)],{type});
+}
+function xesc(s){return String(s).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F￾￿]/g,"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function colName(i){let s="";i++;while(i){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s}
+// styles: 0 default, 1 header, 2 text top, 3 wrapped top, 4 number top, 5 bold number top, 6 flagged (incomplete)
+const XLSX_STYLES=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="3"><font><sz val="11"/><name val="Calibri"/><family val="2"/></font><font><b/><sz val="11"/><name val="Calibri"/><family val="2"/></font><font><color rgb="FF9A3D12"/><sz val="11"/><name val="Calibri"/><family val="2"/></font></fonts>
+<fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFE6ECF2"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFBE6DA"/><bgColor indexed="64"/></patternFill></fill></fills>
+<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left/><right/><top/><bottom style="thin"><color rgb="FF7F8C99"/></bottom><diagonal/></border></borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="7"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top"/></xf>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="right" vertical="top"/></xf>
+<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="right" vertical="top"/></xf>
+<xf numFmtId="0" fontId="2" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="top"/></xf></cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+function sheetXml(rows,widths,freezeCols,selected){
+  const last=colName(rows[0].length-1)+rows.length, tl=colName(freezeCols)+"2";
+  let x=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${last}"/>`;
+  x+=`<sheetViews><sheetView${selected?` tabSelected="1"`:""} workbookViewId="0"><pane ${freezeCols?`xSplit="${freezeCols}" `:""}ySplit="1" topLeftCell="${tl}" activePane="${freezeCols?"bottomRight":"bottomLeft"}" state="frozen"/></sheetView></sheetViews>`;
+  x+=`<sheetFormatPr defaultRowHeight="15"/><cols>`+widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join("")+`</cols><sheetData>`;
+  rows.forEach((r,ri)=>{
+    x+=`<row r="${ri+1}">`;
+    r.forEach((cell,ci)=>{
+      const c=cell!==null&&typeof cell==="object"?cell:{v:cell}, ref=colName(ci)+(ri+1), s=c.s||0;
+      if(c.v===""||c.v==null) x+=s?`<c r="${ref}" s="${s}"/>`:"";
+      else if(typeof c.v==="number") x+=`<c r="${ref}" s="${s}"><v>${c.v}</v></c>`;
+      else x+=`<c r="${ref}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${xesc(String(c.v).slice(0,32000))}</t></is></c>`;
+    });
+    x+=`</row>`;
+  });
+  return x+`</sheetData><autoFilter ref="A1:${last}"/></worksheet>`;
+}
+function xlsxBlob(sheets){
+  const files=[
+    {name:"[Content_Types].xml",data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>`+sheets.map((s,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")+`</Types>`},
+    {name:"_rels/.rels",data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+    {name:"xl/workbook.xml",data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>`+sheets.map((s,i)=>`<sheet name="${xesc(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join("")+`</sheets><definedNames>`+sheets.map((s,i)=>`<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">'${xesc(s.name)}'!$A$1:$${colName(s.rows[0].length-1)}$${s.rows.length}</definedName>`).join("")+`</definedNames></workbook>`},
+    {name:"xl/_rels/workbook.xml.rels",data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`+sheets.map((s,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join("")+`<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+    {name:"xl/styles.xml",data:XLSX_STYLES},
+    ...sheets.map((s,i)=>({name:`xl/worksheets/sheet${i+1}.xml`,data:sheetXml(s.rows,s.widths,s.freeze,i===0)}))
+  ];
+  return zipBlob(files,"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+}
+function r2(x){return Math.round(x*100)/100}
+function xlsxSheets(){
+  const H=s=>({v:s,s:1});
+  const head=["Tutorial","Group","Student","SID","Unikey","Total /100","Group /"+GROUP_MAX,"Individual /"+IND_MAX,"Complete",
+    ...GROUP_CRIT.map(c=>c.name+" /"+c.max),...IND_CRIT.map(c=>c.name+" /"+c.max),"Group feedback","Individual feedback","Marked by"].map(H);
+  const comments=[["Tutorial","Group","Student","SID","Total /100","SpeedGrader comment"].map(H)];
+  const rows=[head];
+  const ordered=[...roster].sort((a,b)=>tutOrder(tutKey(a),tutKey(b))||groupOf(a).localeCompare(groupOf(b),undefined,{numeric:true})||a.n.localeCompare(b.n));
+  for(const s of ordered){
+    const gid=groupOf(s), G=S.groups[gid]||{m:{},note:""}, M=S.students[s.sid]||{m:{},note:""};
+    const gt=groupTotal(gid), it=indTotal(s.sid); if(!gt.n&&!it.n) continue;
+    const done=gt.done&&it.done, num=v=>typeof v==="number"?{v:r2(v),s:4}:{v:"",s:4}, txt=v=>({v:v||"",s:2});
+    rows.push([txt(tutKey(s)),txt(gid.startsWith("solo:")?"(no group)":gid),txt(s.n),txt(s.sid),txt(s.login),
+      {v:r2(gt.t+it.t),s:5},num(gt.t),num(it.t),done?txt("yes"):{v:"no",s:6},
+      ...GROUP_CRIT.map(c=>num(G.m[c.id])),...IND_CRIT.map(c=>num(M.m[c.id])),
+      txt((G.note||"").trim().replace(/\s*\n\s*/g," / ")),txt((M.note||"").trim().replace(/\s*\n\s*/g," / ")),txt([...new Set([G.by,M.by].filter(Boolean))].join(", "))]);
+    comments.push([txt(tutKey(s)),txt(gid.startsWith("solo:")?"(no group)":gid),txt(s.n),txt(s.sid),{v:r2(gt.t+it.t),s:5},{v:feedbackText(s),s:3}]);
+  }
+  const rubric=[["Criterion","Component","Max",...BAND_NAMES].map(H)];
+  for(const [list,comp] of [[GROUP_CRIT,"Group"],[IND_CRIT,"Individual"]]) for(const c of list)
+    rubric.push([{v:c.name,s:3},{v:comp,s:2},{v:c.max,s:4},...c.b.map((r,i)=>({v:(i===5?"0":fmt(r[0])+" to "+fmt(r[1]))+"\n"+c.d[i],s:3}))]);
+  return [
+    {name:"Marks",rows,freeze:3,widths:[11,15,26,12,11,10,9,11,10,...GROUP_CRIT.map(()=>13),...IND_CRIT.map(()=>14),45,45,16]},
+    {name:"Comments",rows:comments,freeze:3,widths:[11,15,26,12,10,110]},
+    {name:"Rubric",rows:rubric,freeze:1,widths:[30,12,6,30,30,30,30,30,24]}
+  ];
+}
+$("#exportXlsx").addEventListener("click",()=>{
+  const sheets=xlsxSheets(), n=sheets[0].rows.length-1;
+  if(!n){toast("Nothing marked yet");return}
+  download(`poster-marks-${new Date().toISOString().slice(0,10)}.xlsx`,xlsxBlob(sheets));
+  toast(`Exported ${n} marked students to Excel`);
+});
+
+$("#backup").addEventListener("click",()=>{
+  const who=(S.ui.marker||"").replace(/[^\w-]+/g,"_");
+  S.ui.lastBackup=Date.now();S.ui.edits=0;flush();
+  download(`poster-marks-backup${who?"-"+who:""}-${new Date().toISOString().slice(0,16).replace(":","")}.json`,JSON.stringify(S),"application/json");
+  toast("Backup downloaded. Keep it somewhere safe (e.g. OneDrive).");
+});
+$("#restore").addEventListener("click",()=>$("#fileJson").click());
+$("#fileJson").addEventListener("change",async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{const d=JSON.parse(await f.text()); if(!d.groups||!d.students) throw 0;
+    if(!confirm("Replace all current marks with this backup?")) return;
+    S=d;S.moves=S.moves||{};S.ui=S.ui||{};S.ui.edits=0;roster=S.roster||EMBEDDED_ROSTER;rebuild();flush();renderTutSelect();$("#marker").value=S.ui.marker||"";renderList();renderView();toast("Backup restored")}
+  catch(err){toast("That file is not a marker backup")}
+  e.target.value="";
+});
+$("#roster").addEventListener("click",()=>$("#fileCsv").click());
+function parseCsv(text){const rows=[];let row=[],cell="",q=false;
+  for(let i=0;i<text.length;i++){const ch=text[i];
+    if(q){if(ch=='"'){if(text[i+1]=='"'){cell+='"';i++}else q=false}else cell+=ch}
+    else if(ch=='"')q=true; else if(ch==","){row.push(cell);cell=""} else if(ch=="\n"){row.push(cell);rows.push(row);row=[];cell=""} else if(ch!="\r")cell+=ch}
+  if(cell||row.length){row.push(cell);rows.push(row)} return rows}
+function rosterFromCsv(text){
+  const rows=parseCsv(text.replace(/^﻿/,"")); const h=rows[0].map(x=>x.trim());
+  const ix=k=>h.indexOf(k); const need=["name","user_id","login_id","sections","group_name"];
+  if(need.some(k=>ix(k)<0)) throw new Error("missing columns");
+  return rows.slice(1).filter(r=>r.length>1&&r[ix("user_id")]).map(r=>{
+    const m=/(DATA1\d02)-S2C-ND-CC\/Tutorial\/(\d+)/.exec(r[ix("sections")])||/(DATA1\d02)/.exec(r[ix("sections")])||[];
+    return {n:r[ix("name")],sid:r[ix("user_id")],cid:ix("canvas_user_id")>=0?r[ix("canvas_user_id")]:"",login:r[ix("login_id")],g:r[ix("group_name")].trim(),unit:(m[1]||"DATA").replace("DATA",""),tut:m[2]||"?"}})
+}
+$("#fileCsv").addEventListener("change",async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{const r=rosterFromCsv(await f.text()); if(!r.length) throw 0;
+    roster=r;S.roster=r;touched();rebuild();save();renderTutSelect();renderList();renderView();toast(`Loaded ${r.length} students. Existing marks kept.`)}
+  catch(err){toast("Could not read that CSV (expected the Canvas group export)")}
+  e.target.value="";
+});
+
+function mergeInto(d,who){
+  let added=0; const conflicts=[];
+  for(const [kind,list] of [["groups",GROUP_CRIT],["students",IND_CRIT]]){
+    for(const [id,src] of Object.entries(d[kind]||{})){
+      const dst=S[kind][id]||(S[kind][id]={m:{},note:""});
+      for(const c of list){ const v=src.m&&src.m[c.id]; if(typeof v!=="number") continue;
+        if(typeof dst.m[c.id]!=="number"){dst.m[c.id]=v;added++;if(src.by&&!dst.by)dst.by=src.by}
+        else if(dst.m[c.id]!==v) conflicts.push(`${kind==="groups"?id:(byId[id]?displayName(byId[id].n):id)}: ${c.name} kept ${dst.m[c.id]}, ${who} had ${v}`);
+      }
+      if(src.note&&!dst.note) dst.note=src.note; else if(src.note&&dst.note!==src.note&&!dst.note.includes(src.note)) dst.note+="\n["+(src.by||who)+"] "+src.note;
+    }
+  }
+  for(const [sid,g] of Object.entries(d.moves||{})) if(!S.moves[sid]) S.moves[sid]=g;
+  return {added,conflicts};
+}
+$("#merge").addEventListener("click",()=>$("#fileMerge").click());
+$("#fileMerge").addEventListener("change",async e=>{
+  const files=[...e.target.files]; e.target.value=""; if(!files.length) return;
+  let added=0, conflicts=[], bad=[];
+  for(const f of files){
+    try{const d=JSON.parse(await f.text()); if(!d.groups||!d.students) throw 0;
+      const r=mergeInto(d,(d.ui&&d.ui.marker)||f.name); added+=r.added; conflicts.push(...r.conflicts)}
+    catch(err){bad.push(f.name)}
+  }
+  touched();rebuild();flush();renderList();renderView();
+  let msg=`Merged ${files.length-bad.length} file(s): ${added} marks added.`;
+  if(bad.length) msg+=`\nSkipped (not marker backups): ${bad.join(", ")}`;
+  if(conflicts.length) msg+=`\n\n${conflicts.length} conflict(s). Your existing marks were kept:\n`+conflicts.slice(0,25).join("\n")+(conflicts.length>25?`\n...and ${conflicts.length-25} more`:"");
+  alert(msg);
+});
+$("#marker").addEventListener("input",e=>{S.ui.marker=e.target.value.trim();save()});
+
+let toastT; function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2400)}
+window.addEventListener("beforeunload",()=>{if(saveTimer)flush()});
+
+storageOk=storageWorks();
+$("#marker").value=S.ui.marker||"";
+rebuild();renderTutSelect();renderList();renderView();renderSaveState();
+setInterval(renderSaveState,60000);
+</script>
+</body>
+</html>
